@@ -762,35 +762,6 @@ write_csv(cp.cov.ant.dem.int.oth, file = here("COVID_PREG_cleaned_QC_2023-02-26.
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 ####### LOAD IN OTHER DATA #########
 bc_data <- read.csv("CanadianSurveillance_DATA_2024-01-16_1232.csv",header = TRUE, na.strings = c("", NA, 999))
 dim(bc_data)
@@ -2260,7 +2231,7 @@ cp.cov.ant.dem <- left_join(cp.cov.ant, cp.dem, by = "a_record_id")
 cp.cov.ant.dem.int <- left_join(cp.cov.ant.dem, cp.int, by = "a_record_id")
 cp.cov.ant.dem.int.oth <- left_join(cp.cov.ant.dem.int, cp.oth, by = "a_record_id")
 
-#################### WRITE MB NB PE ####################
+#################### WRITE MB NB PE YT ####################
 # replace the filepath, to one appropriate for your project
 write_csv(cp.cov.ant.dem.int.oth, file = here("COVID_PREG_cleaned_MB_NB_PE_2023-02-26.csv"))
 
@@ -2269,3 +2240,38 @@ write_csv(cp.ant, file = here("antenatal_test.csv"))
 
 
 
+
+#### CLEAN NEWFOUNDLAND ####
+
+
+NL_ante <- read.csv("NLdata/NL_antepartum.csv", header = TRUE, na.strings = c("", NA, 999))
+
+NL <- read.csv("NLdata/NL CAN COVID DATA RELEASE FILE.csv", header = TRUE, na.strings = c("", NA, 999))
+
+nl_clean <- remove_empty(dat = NL, quiet = TRUE)
+
+# make all No Entry's and NA
+
+# delivery date time separation
+nl_clean <- nl_clean %>% 
+  rowwise() %>% 
+  # TODO : fix
+  mutate(r_dob = as.Date(Delivery.DateTime), r_tob = as.Date(Delivery.DateTime))
+
+#Breastfeeding initiation Y/N 1/0
+nl_clean <- nl_clean %>% 
+  rowwise() %>% 
+  # TODO : fix
+  mutate()
+
+
+write.csv(nl_clean, here("NL_CLEANED_2024-01-21.csv"))
+
+
+## Clean Nova Scotia data ##
+NS <- read.csv("2024-JAN-18_RAW_COVID19InPreg_DATA_2024-01-18_1559.csv", header = TRUE, na.strings = c("", NA, 999))
+
+# clean out any empty columns
+ns_clean <- remove_empty(dat = NS, quiet = TRUE)
+
+write.csv(ns_clean, here("NS_CLEANED_2024-01-21.csv"))
