@@ -159,7 +159,7 @@ cp.ant$ga.now <- as.numeric((280 - (cp.ant$i_deliverydate_est - Today()))/7)
 # describeMedian(cp.ant$ga.now, iqr = FALSE) # check the range and fix any that are not possible  - or remove. <0 and >43 weeks
 
 # split maternal age and GA at diagnosis into categories
-cp.dem$age_cat <- factor(case_when(
+cp.dem$b_age <- factor(case_when(
   cp.dem$b_age <25 ~ "<25 years",
   cp.dem$b_age <30 ~ "25-30 years",
   cp.dem$b_age <35 ~ "30-34 years",
@@ -168,7 +168,7 @@ cp.dem$age_cat <- factor(case_when(
 ),
 levels = c("<25 years", "25-30 years", "30-34 years", "35-39 years", "≥40 years"))
 
-describeFactors(cp.dem$age_cat)
+describeFactors(cp.dem$b_age)
 
 # cp.ant$ga_at_diag <- as.numeric((280 - (cp.ant$i_deliverydate_est - cp.ant$d_naso1_collect))/7) # in weeks
 # describeMedian(cp.ant$ga_at_diag, iqr = FALSE) # check the range and fix any that are not possible - or remove. <0 and >43 weeks
@@ -555,12 +555,12 @@ cp.ant$asthma <- case_when(
 describeFactors(cp.ant$asthma)
 
 # Chronic obstructive lung disease
-cp.ant$lung <- case_when(
-  cp.ant$j_resp_lung___1 == 1 ~ "Yes",
-  is.na(cp.ant$cvs) ~ NA_character_,
-  !is.na(cp.ant$cvs) ~ "No"
-)
-describeFactors(cp.ant$lung)
+# cp.ant$lung <- case_when(
+#   cp.ant$j_resp_lung___1 == 1 ~ "Yes",
+#   is.na(cp.ant$cvs) ~ NA_character_,
+#   !is.na(cp.ant$cvs) ~ "No"
+# )
+# describeFactors(cp.ant$lung)
 
 # hypertension not including gestational
 cp.ant$htn <- case_when(
@@ -2273,5 +2273,122 @@ NS <- read.csv("2024-JAN-18_RAW_COVID19InPreg_DATA_2024-01-18_1559.csv", header 
 
 # clean out any empty columns
 ns_clean <- remove_empty(dat = NS, quiet = TRUE)
+
+ns_clean$e_diagnosis <- as.Date(ns_clean$e_diagnosis, format = "%m/%d/%y")
+
+ns_clean$e_diagnosis
+
+ns_clean <- ns_clean %>% 
+  rowwise() %>% 
+  mutate(i_deliverydate_est = as.Date(i_lmp, format = "%m/%d/%y") + 280)
+
+#Cardiovascular System ##?? Missing auto-immune conditions (j_aai)??
+ns_clean <- ns_clean %>%
+  mutate(cvs = case_when(
+    all(is.na(c(j_cns, j_cvs, j_resp, j_gi, j_gu, j_repro, j_endo, j_ms, j_hem, j_mh))) & a_record_id %in% ns_clean$a_record_id ~ "No",
+    all(is.na(c(j_cns, j_cvs, j_resp, j_gi, j_gu, j_repro, j_endo, j_ms, j_hem, j_mh))) & j_none___1 == 0 ~ "No entry",
+    j_none___1 == 1 ~ "No",
+    j_cvs == 1 ~ "Yes",
+    l_htn == 1 ~ "Yes",
+    j_cvs == 0 ~ "No",
+    is.na(j_cvs) ~ "No"
+  ))
+
+# diabetes 1 or 2 not including gestational
+ns_clean$diabetes <- case_when(
+  ns_clean$j_endo_diabt1___1 == 1 | ns_clean$j_endo_diabt2___1 == 1 ~ "Yes")
+
+describeFactors(cp.ant$diabetes)
+
+
+# hypertension not including gestational
+ns_clean$htn <- case_when(
+  ns_clean$j_cvs_htn___1 == 1 ~ "Yes",
+  is.na(ns_clean$cvs) ~ NA_character_,
+  !is.na(ns_clean$cvs) ~ "No")
+
+## maternal BMI
+ns_clean$i_weight <- replace(ns_clean$i_weight, which(ns_clean$i_weight == 999 | ns_clean$i_weight == 666), NA)
+ns_clean$i_height <- replace(ns_clean$i_height, which(ns_clean$i_height == 999 | ns_clean$i_height == 666), NA)
+ns_clean$i_height <- replace(ns_clean$i_height, which(ns_clean$i_height == 1676.00 ), 167)
+ns_clean$i_height[which(ns_clean$i_height < 100)] <- ns_clean$i_height[which(ns_clean$i_height < 100)]*100
+
+ns_clean$BMI <- ns_clean$i_weight/(ns_clean$i_height/100)^2
+describeMedian(ns_clean$BMI, iqr = FALSE) # check for out of range values - and remove or correct
+
+# BMI >= 30 variable
+ns_clean$BMI_cat <- factor(case_when(
+  ns_clean$BMI < 18.5 ~ "<18.5",
+  ns_clean$BMI < 25 ~ "18.5-25",
+  ns_clean$BMI < 30 ~ "25-30",
+  ns_clean$BMI >= 30 ~ "≥30"
+))
+
+# Gravida
+ns_clean$gravida <- ns_clean$h_gravida
+ns_clean$gravida <- factor(case_when(
+  ns_clean$gravida == 0 ~ "0",
+  ns_clean$gravida == 1 ~ "1",
+  ns_clean$gravida >= 2 ~ "2+"
+))
+
+## losses/stillbirth
+ns_clean$p_outcome <- case_when(
+  ns_clean$p_outcome == 1 ~ "Loss",
+  ns_clean$p_outcome == 2 ~ "Stillbirth",
+  ns_clean$p_outcome == 3 ~ "Livebirth"
+)
+
+
+# mode of delivery
+# Vag/CS
+ns_clean$mode_del <- case_when(
+  ns_clean$p_mode == 1 ~ "Vaginal",
+  ns_clean$p_mode == 2 ~ "CS"
+)
+
+# 5 minute apgar
+ns_clean$apgar5 <- factor(ifelse(ns_clean$s_apgar_5 < 7, "<7", "≥7"))
+
+# birth weight
+ns_clean$bw_cat <- case_when(
+  ns_clean$s_bw_gm < 2500 ~ "<2500",
+  ns_clean$s_bw_gm >= 2500 & ns_clean$s_bw_gm <=4000 ~ "2500-4000",
+  ns_clean$s_bw_gm > 4000 ~ ">4000"
+)
+
+# NICU admission
+# assuming if we have birth weight then we should know if baby admitted to NICU or not
+ns_clean$NICU <- case_when(
+  ns_clean$t_nicu == 1 ~ "Yes",
+  ns_clean$t_nicu == 0 ~ "No",
+  is.na(ns_clean$s_bw_gm) == FALSE ~ "No")
+
+# duration of admission
+ns_clean$nicu_dur <- as.numeric(as.Date(ns_clean$t_nicu_discharge) - as.Date(ns_clean$t_nicu_admission))
+
+ns_clean$ga_at_diag <- as.numeric((280 - (as.Date(ns_clean$i_deliverydate_est, format = "%Y-%m-%d") - as.Date(ns_clean$d_naso1_collect, format = "%m/%d/%y")))/7) # in weeks
+# describeMedian(ns_clean$ga_at_diag, iqr = FALSE) # check the range and fix any that are not possible - or remove. <0 and >43 weeks
+ns_clean$ga_at_diag <- replace(ns_clean$ga_at_diag, which(ns_clean$ga_at_diag >43 | ns_clean$ga_at_diag < 0), NA)
+
+ns_clean$ga_dx_cat <- factor(case_when(
+  ns_clean$ga_at_diag <= 14 ~ "<=14 weeks",
+  ns_clean$ga_at_diag < 27 ~ "14-27 weeks",
+  ns_clean$ga_at_diag <38 ~ "28-38 weeks",
+  ns_clean$ga_at_diag >=38 ~ "≥38 weeks"
+), levels = c("<=14 weeks", "14-27 weeks", "28-38 weeks", "≥38 weeks"))
+
+
+# Gravida
+ns_clean$gravida <- ns_clean$h_gravida
+ns_clean$gravida <- factor(case_when(
+  ns_clean$gravida == 0 ~ "0",
+  ns_clean$gravida == 1 ~ "1",
+  ns_clean$gravida >= 2 ~ "2+"
+))
+
+ns_clean$BMI_cat <- factor(ns_clean$BMI_cat, levels = c("<18.5", "18.5-25", "25-30", "≥30"))
+
+#ns_clean <- ns_clean[-which(ns_clean$e_diagnosis),]
 
 write.csv(ns_clean, here("NS_CLEANED_2024-01-21.csv"))

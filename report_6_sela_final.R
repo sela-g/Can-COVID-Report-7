@@ -93,7 +93,7 @@ qc$f_pres_cort_oth_s <- NA
 #
 ### ok ariannes code here is pretty damn wacky, so lets just look at report 6 and try and replicate it
 
-## combine QC, BC, NB, MB, PEI, and YT line level data, the
+## combine QC, BC, NB, NS, MB, PEI, and YT line level data, the
 
 
 length(colnames(qc))
@@ -102,9 +102,10 @@ length(colnames(bc))
 length(colnames(ns))
 
 all_cols <- intersect(colnames(qc),colnames(bc))
-all_cols <- intersect(all_cols, colnames(ns))
 all_cols <- intersect(all_cols, colnames(mb.nb.pe))
+all_cols <- intersect(all_cols, colnames(ns))
 #all_cols <- intersect(all_cols, colnames(nl))
+
 
 all_combined <- rbind(qc[,which(colnames(qc) %in% all_cols)],
                       bc[,which(colnames(bc) %in% all_cols)],
@@ -117,7 +118,7 @@ bcmbnbpe <- all_combined
 write.csv(bcmbnbpe, here("bcmbnbpe_2024-01-22.csv"))
 describeFactors(bcmbnbpe$province)
 
-bcmbnbpe %>% group_by(province) %>% summarise(n = n(), date_range = range(as.Date(e_diagnosis), na.rm = TRUE))
+bcmbnbpe %>% group_by(province) %>% reframe(n = n(), date_range = range(as.Date(e_diagnosis, format = "%Y-%m-%d"), na.rm = TRUE))
 
 
 ## date range
@@ -136,14 +137,9 @@ table2_alberta <- read.csv("table2_alberta.csv", header = TRUE)
 ### MATERNAL AGE
 
 bcmbnbpe <- bcmbnbpe %>% mutate(age_cat2 = case_when(
-  age_cat == "25-29 years" ~ "<30 years",
-  age_cat == "25-30 years" ~ "<30 years",
-  age_cat == "30-34 years" ~ "30-35 years",
-  age_cat == "30-35 years" ~ "30-35 years",
-  age_cat == "35-39 years" ~ "≥36 years",
-  age_cat == "36-39 years" ~ "≥36 years",
-  age_cat == "≥40 years" ~ "≥36 years",
-  age_cat == "<25 years" ~ "<30 years"
+  b_age < 30 ~ "<30 years",
+  b_age < 36 ~ "30-35 years",
+  b_age >= 36 ~ "≥36 years",
 ))
 
 bcmbnbpe$age_cat2 <- factor(bcmbnbpe$age_cat2, levels = c("<30 years","30-35 years","≥36 years"))
@@ -191,21 +187,20 @@ unique(qc$ga_at_diag)
 
 
 ### COMORBIDITIES:
-table2_cvs <- bcmbnbpe %>% group_by(cvs) %>% summarise(n = n())
-table2_cvs$n_ontario <- c(2488,2,0)
-table2_cvs$n_alberta <- c(2561-49,49,0)
-table2_cvs$sums <- table2_cvs$n + table2_cvs$n_alberta + table2_cvs$n_ontario
-sum(table2_cvs$sums[1:2])
+#table2_cvs <- bcmbnbpe %>% group_by(cvs) %>% summarise(n = n())
+#table2_cvs$n_ontario <- c(2488,2,0)
+#table2_cvs$n_alberta <- c(2561-49,49,0)
+#table2_cvs$sums <- table2_cvs$n + table2_cvs$n_alberta + table2_cvs$n_ontario
+#sum(table2_cvs$sums[1:2])
 
 
 
-
+# TODO : FIX
 table2_htn <- bcmbnbpe %>% group_by(htn) %>% summarise(n = n())
 table2_htn$n_ontario <- c(2490-123,123,0)
 table2_htn$n_alberta <- c(2461,100,0)
 table2_htn$sums <- table2_htn$n + table2_htn$n_alberta + table2_htn$n_ontario
 sum(table2_htn$sums[1:2])
-
 
 table2_diabetes <- bcmbnbpe %>% group_by(diabetes) %>% summarise(n = n())
 table2_diabetes$n_ontario <- c(2490 - 267, 267, 0)
@@ -214,19 +209,19 @@ table2_diabetes$sums <- table2_diabetes$n + table2_diabetes$n_alberta + table2_d
 sum(table2_diabetes$sums[1:2])
 
 
-table2_lung <- bcmbnbpe %>% group_by(lung) %>% summarise(n = n())
-table2_lung$n_ontario <- c(2490,0,0)
-table2_lung$n_alberta <- c(2561-85,85,0)
-table2_lung$sums <- table2_lung$n + table2_lung$n_alberta + table2_lung$n_ontario
-sum(table2_lung$sums[1:2])
+# table2_lung <- bcmbnbpe %>% group_by(lung) %>% summarise(n = n())
+# table2_lung$n_ontario <- c(2490,0,0)
+# table2_lung$n_alberta <- c(2561-85,85,0)
+# table2_lung$sums <- table2_lung$n + table2_lung$n_alberta + table2_lung$n_ontario
+# sum(table2_lung$sums[1:2])
 
 
 
-table2_immun <- bcmbnbpe %>% group_by(autoimm) %>% summarise(n = n())
-table2_immun$n_ontario <- c(2490,0,0)
-table2_immun$n_alberta <- c(2561-51,51,0)
-table2_immun$sums <- table2_immun$n + table2_immun$n_alberta + table2_immun$n_ontario
-sum(table2_immun$sums[1:2])
+# table2_immun <- bcmbnbpe %>% group_by(autoimm) %>% summarise(n = n())
+# table2_immun$n_ontario <- c(2490,0,0)
+# table2_immun$n_alberta <- c(2561-51,51,0)
+# table2_immun$sums <- table2_immun$n + table2_immun$n_alberta + table2_immun$n_ontario
+# sum(table2_immun$sums[1:2])
 
 
 
@@ -237,8 +232,6 @@ table2_obese$n_alberta <- c(2561-108,108,0)
 table2_obese$sums <- table2_obese$n + table2_obese$n_alberta + table2_obese$n_ontario
 sum(table2_obese$sums[1:2])
 
-  
-  
   
 table2_ontario 
 table2_alberta 
@@ -252,15 +245,15 @@ describeFactors(bcmbnbpe$htn)
 describeFactors(bcmbnbpe$diabetes)
 
 #lung disease
-describeFactors(bcmbnbpe$lung)
+#describeFactors(bcmbnbpe$lung)
 
 
 
 #immunosuppression
-describeFactors(bcmbnbpe$autoimm)
+#describeFactors(bcmbnbpe$autoimm)
 
 #obesity
-describeFactors(bcmbnbpe$obese)
+#describeFactors(bcmbnbpe$obese)
 
 
 
@@ -313,29 +306,31 @@ describeFactors(bcmbnbpe$obese)
 
 ## COVID SYMPTOMS:
 
-describeFactors(bcmbnbpe$cough)
-describeFactors(bcmbnbpe$fever)
-describeFactors(bcmbnbpe$head)
-describeFactors(bcmbnbpe$runny)
-describeFactors(bcmbnbpe$throat)
-describeFactors(bcmbnbpe$muscle)
-describeFactors(bcmbnbpe$breath)
-
-describeFactors(bcmbnbpe$malaise)
-describeFactors(bcmbnbpe$anosmia)
-describeFactors(bcmbnbpe$vomit)
-describeFactors(bcmbnbpe$asym)
-describeFactors(bcmbnbpe$anorexia)
-
-describeFactors(bcmbnbpe$diarrhea)
-describeFactors(bcmbnbpe$e_othersx)
-describeFactors(bcmbnbpe$chest_pain)
+# describeFactors(bcmbnbpe$cough)
+# describeFactors(bcmbnbpe$fever)
+# describeFactors(bcmbnbpe$head)
+# describeFactors(bcmbnbpe$runny)
+# describeFactors(bcmbnbpe$throat)
+# describeFactors(bcmbnbpe$muscle)
+# describeFactors(bcmbnbpe$breath)
+# 
+# describeFactors(bcmbnbpe$malaise)
+# describeFactors(bcmbnbpe$anosmia)
+# describeFactors(bcmbnbpe$vomit)
+# describeFactors(bcmbnbpe$asym)
+# describeFactors(bcmbnbpe$anorexia)
+# 
+# describeFactors(bcmbnbpe$diarrhea)
+# describeFactors(bcmbnbpe$e_othersx)
+# describeFactors(bcmbnbpe$chest_pain)
 
 
 ## hospitalizations
 describeFactors(bcmbnbpe$e_hosp)
 
-describeFactors(bcmbnbpe$abx_pne)
+#MISSING FOR NS
+#describeFactors(bcmbnbpe$abx_pne)
+
 describeFactors(bcmbnbpe$e_coag)
 describeFactors(bcmbnbpe$g_icu)
 describeFactors(bcmbnbpe$e_oxygen___1)
@@ -363,7 +358,8 @@ describeFactors(bcmbnbpe$mode_del)
 describeFactors(bcmbnbpe$p_labour___1)
 describeFactors(bcmbnbpe$p_labour___2)
 describeFactors(bcmbnbpe$p_labour___3)
-describeFactors(bcmbnbpe$p_labour___4)
+#missing from NS data
+#describeFactors(bcmbnbpe$p_labour___4)
 describeFactors(bcmbnbpe$p_labour___999) # missing
 
 
