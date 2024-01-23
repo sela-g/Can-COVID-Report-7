@@ -1,7 +1,7 @@
 #### CANCOVID 2.0 ####
 # Gal Av-Gay #
 
-setwd("/Users/mac/Desktop/CANCOVID_2.0/CANCOVID")
+#setwd("/Users/mac/Desktop/CANCOVID_2.0/CANCOVID")
 library(Gmisc)
 library(broman)
 library(dplyr)
@@ -17,26 +17,27 @@ library(ghibli)
 library(ggpubr)
 
 #### LOAD ALL DATA ####
-
-data_bc <- read.csv("BC/qiqa_cancovid_nov20.csv", header = TRUE)
-data_ns <- read.csv("NS/COVID19InPreg_DATA_2023-04-18_1432.csv", header = TRUE)
-data_on <- read_sas("ON/covid_preg_infants_sep3022.sas7bdat")
-data_other <- read.csv("everything_else/rc_cancovid_nov21.csv", header = TRUE)
-data_NL <- read.csv("everything_else/NL_cancovid.csv")
-data_NL_antepartum <- read.csv("everything_else/NL_antepartum.csv")
+getwd()
+data_bc <- read.csv("CanadianSurveillance_DATA_2024-01-23_1307.csv", header = TRUE)
+data_ns <- read.csv("2024-JAN-18_RAW_COVID19InPreg_DATA_2024-01-18_1559.csv", header = TRUE)
+#data_on <- read_sas("ONdata/covid_preg_infants_sep3022.sas7bdat")
+data_on <- read.csv("ONdata/data_on_06_13_2023.csv", header = TRUE)
+data_other <- read.csv("CanadianCOVID19InPre_DATA_2024-01-23_1258.csv", header = TRUE)
+data_NL <- read.csv("NL_CLEANED_2024-01-21.csv")
+data_NL_antepartum <- read.csv("NLdata/NL_antepartum.csv")
 
 ## quebec is complicated...##
-qc1 <- read.csv("QC/september27/COVIPREGQV4-EXPORT1DEMOAB_DATA_2023-09-27_2006.csv", header = TRUE)
-qc2 <- read.csv("QC/september27/COVIPREGQV4-EXPORT2aSARSCOV2CDE_DATA_2023-09-27_2007.csv", header = TRUE)
-qc3 <- read.csv("QC/september27/COVIPREGQV4-EXPORT2bSARSCOV2F_DATA_2023-09-27_2007.csv", header = TRUE)
-qc4 <- read.csv("QC/september27/COVIPREGQV4-EXPORT2c1SARSCOV2G_DATA_2023-09-27_2008.csv", header = TRUE)
-qc5 <- read.csv("QC/september27/COVIPREGQV4-EXPORT2c2SARSCOV2G_DATA_2023-09-27_2008.csv", header = TRUE)
-qc6 <- read.csv("QC/september27/COVIPREGQV4-EXPORT3aANTEHToL_DATA_2023-09-27_2009.csv", header = TRUE)
-qc7 <- read.csv("QC/september27/COVIPREGQV4-EXPORT3bANTEM_DATA_2023-09-27_2009.csv", header = TRUE)
-qc8 <- read.csv("QC/september27/COVIPREGQV4-EXPORT3cANTENO_DATA_2023-09-27_2010.csv", header = TRUE)
-qc9 <- read.csv("QC/september27/COVIPREGQV4-EXPORT4INTRAPToU_DATA_2023-09-27_2010.csv", header = TRUE)
-qc10 <- read.csv("QC/september27/COVIPREGQV4-EXPORT5POSTVToY_DATA_2023-09-27_2010.csv", header = TRUE)
-qc11 <- read.csv("QC/september27/COVIPREGQV4-EXPORT6OTHERZToAB_DATA_2023-09-27_2011.csv", header = TRUE)
+qc1 <- read.csv("QCdata/COVIPREGQV4-EXPORT1DEMOAB_DATA_2024-01-16_2009.csv", header = TRUE)
+qc2 <- read.csv("QCdata/COVIPREGQV4-EXPORT2aSARSCOV2CDE_DATA_2024-01-16_2010.csv", header = TRUE)
+qc3 <- read.csv("QCdata/COVIPREGQV4-EXPORT2bSARSCOV2F_DATA_2024-01-16_2012.csv", header = TRUE)
+qc4 <- read.csv("QCdata/COVIPREGQV4-EXPORT2c1SARSCOV2G_DATA_2024-01-16_2014.csv", header = TRUE)
+qc5 <- read.csv("QCdata/COVIPREGQV4-EXPORT2c2SARSCOV2G_DATA_2024-01-16_2015.csv", header = TRUE)
+qc6 <- read.csv("QCdata/COVIPREGQV4-EXPORT3aANTEHToL_DATA_2024-01-16_2015.csv", header = TRUE)
+qc7 <- read.csv("QCdata/COVIPREGQV4-EXPORT3bANTEM_DATA_2024-01-16_2015.csv", header = TRUE)
+qc8 <- read.csv("QCdata/COVIPREGQV4-EXPORT3cANTENO_DATA_2024-01-16_2016.csv", header = TRUE)
+qc9 <- read.csv("QCdata/COVIPREGQV4-EXPORT4INTRAPToU_DATA_2024-01-16_2019.csv", header = TRUE)
+qc10 <- read.csv("QCdata/COVIPREGQV4-EXPORT5POSTVToY_DATA_2024-01-16_2020.csv", header = TRUE)
+qc11 <- read.csv("QCdata/COVIPREGQV4-EXPORT6OTHERZToAB_DATA_2024-01-16_2021.csv", header = TRUE)
 
 data_qc <- left_join(qc1,qc2, by = "a_record_id")
 data_qc <- left_join(data_qc,qc3, by = "a_record_id")
@@ -54,6 +55,8 @@ dim(data_qc)
 ## data other split up
 
 unique(data_other$redcap_data_access_group)
+data_other <- data_other[-which(data_other$redcap_data_access_group == ""),]
+
 data_mb <- data_other %>% filter(redcap_data_access_group == "mb")
 data_nb <- data_other %>% filter(redcap_data_access_group == "nb")
 data_pe <- data_other %>% filter(redcap_data_access_group == "pe")
@@ -240,8 +243,8 @@ data_yt <- left_join(data_yt,data_yt_6, by = "a_record_id")
 
 
 ##### NEWFOUNDLAND ####
-data_NL <- read.csv("everything_else/NL_cancovid.csv")
-data_NL_antepartum <- read.csv("everything_else/NL_antepartum.csv")
+#data_NL <- read.csv("everything_else/NL_cancovid.csv")
+#data_NL_antepartum <- read.csv("everything_else/NL_antepartum.csv")
 
 # colnames(data_NL)
 
@@ -301,7 +304,7 @@ length(unique(data_NL_antepartum$NL_COVIDSTUDYID))
 #### FIX INCORRECT DATA ####
 # DO THIS LATER? #
 data_bc$time_del <- as.numeric(as.Date(data_bc$r_dob) - as.Date(data_bc$e_diagnosis))
-data_ns$time_del <- as.numeric(as.Date(data_ns$r_dob) - as.Date(data_ns$e_diagnosis))
+data_ns$time_del <- as.numeric(as.Date(data_ns$r_dob, format = "%m/%d/%Y") - as.Date(data_ns$e_diagnosis, format = "%m/%d/%Y"))
 data_on$time_del <- as.numeric(as.Date(data_on$baby_birth_date) - as.Date(data_on$C_COVID_diagnosis_date))
 data_qc$time_del <- as.numeric(as.Date(data_qc$r_dob) - as.Date(data_qc$e_diagnosis))
 data_mb$time_del <- as.numeric(as.Date(data_mb$r_dob) - as.Date(data_mb$e_diagnosis))
@@ -444,12 +447,12 @@ for(i in 2:dim(full_data_sansON)[1]){
 
 full_data_sansON_wtwins <- full_data_sansON[indexes,]
 dim(full_data_sansON_wtwins)
-full_data_sansON$
+#full_data_sansON$
   
   
 ## placental Pathology  
-placental_path_NS <- full_data_sansON[which(full_data_sansON$prov == "NS"),c("a_record_id","r_path","r_path_res","r_path_res_desc","r_covtest","r_covtest_collect_d","r_covtest_collect_t","r_covtest_lab","r_covtest_test","r_cov_res","prov")]
-placental_path_NS <- placental_path_NS[which(placental_path_NS$r_path == 1),]
+#placental_path_NS <- full_data_sansON[which(full_data_sansON$prov == "NS"),c("a_record_id","r_path","r_path_res","r_path_res_desc","r_covtest","r_covtest_collect_d","r_covtest_collect_t","r_covtest_lab","r_covtest_test","r_cov_res","prov")]
+#placental_path_NS <- placental_path_NS[which(placental_path_NS$r_path == 1),]
 
 ## columns to combine 
 # s_baby, s_baby_2, s_baby_3, 
@@ -1103,7 +1106,7 @@ full_data_sansON$covid_period = case_when(
 
 full_data_sansON$covid_period <- factor(full_data_sansON$covid_period, levels = c("pre-Delta","Delta","Omicron"))
 
-covid_period_table<- full_data_sansON %>% group_by(covid_period) %>% summarise(n = n(),nicu = sum(NICU == "Yes", na.rm = TRUE),stillbirth = sum(o_sb == 1, na.rm = TRUE),hospitalizations = sum(e_hosp == "1", na.rm = TRUE),icu_admissions = sum(g_icu == "1", na.rm = TRUE))
+covid_period_table <- full_data_sansON %>% group_by(covid_period) %>% summarise(n = n(),nicu = sum(NICU == "Yes", na.rm = TRUE),stillbirth = sum(o_sb == 1, na.rm = TRUE),hospitalizations = sum(e_hosp == "1", na.rm = TRUE),icu_admissions = sum(g_icu == "1", na.rm = TRUE))
 
 covid_period_table2 <- full_data_sansON %>% group_by(covid_period) %>% summarise(n = n(),term_births = sum(ga_del_cat == "term", na.rm = TRUE), late_preterm = sum(ga_del_cat == "late preterm", na.rm = TRUE),moderate_preterm = sum(ga_del_cat == "moderate preterm", na.rm = TRUE),very_preterm = sum(ga_del_cat == "very preterm", na.rm = TRUE))
 
@@ -1598,12 +1601,16 @@ full_data_sansON$n_covid_date4[which(full_data_sansON$n_covid_date4 == "9999-09-
 full_data_sansON$number_of_vaccines <- NA
 
 for(i in 1:length(full_data_sansON$number_of_vaccines)){
-  vacc_date_list <- c(full_data_sansON$n_covid_date[i],full_data_sansON$n_covid_date1[i],full_data_sansON$n_covid_date2[i],full_data_sansON$n_covid_date3[i],full_data_sansON$n_covid_date4[i])
+  vacc_date_list <- c(as.Date(full_data_sansON$n_covid_date[i], format = "%Y-%m-%d"),
+                      as.Date(full_data_sansON$n_covid_date1[i], format = "%Y-%m-%d"),
+                      as.Date(full_data_sansON$n_covid_date2[i], format = "%Y-%m-%d"),
+                      as.Date(full_data_sansON$n_covid_date3[i], format = "%Y-%m-%d"),
+                      as.Date(full_data_sansON$n_covid_date4[i], format = "%Y-%m-%d"))
   if(length(which(is.na(vacc_date_list))) > 0){
     vacc_date_list <- vacc_date_list[-which(is.na(vacc_date_list))]
   }
-  if(length(which(as.Date(vacc_date_list) > as.Date(full_data_sansON$e_diagnosis[i]))) > 0){
-    vacc_date_list <- vacc_date_list[-which(as.Date(vacc_date_list) > as.Date(full_data_sansON$e_diagnosis[i]))]
+  if(length(which(vacc_date_list > as.Date(full_data_sansON$e_diagnosis[i], format = "%Y-%m-%d"))) > 0){
+    vacc_date_list <- vacc_date_list[-which(as.Date(vacc_date_list) > as.Date(full_data_sansON$e_diagnosis[i], format = "%Y-%m-%d"))]
   }
   full_data_sansON$number_of_vaccines[i] <- length(unique(vacc_date_list))
   if(length(unique(vacc_date_list)) == 0){
@@ -2226,7 +2233,8 @@ full_data_sansON %>% group_by(prov) %>% summarise(n = length(unique(a_record_id)
 # full_data_sansON_duplicated %>% group_by(prov) %>% summarise(n = length(a_record_id), min_date = min(as.Date(e_diagnosis), na.rm = TRUE), max_date = max(as.Date(e_diagnosis), na.rm = TRUE))
 # full_data_sansON_duplicated$e_diagnosis <- as.Date(full_data_sansON_duplicated$e_diagnosis)
 
-data_on %>% summarise(n=n(),min_date = min(as.Date(C_COVID_diagnosis_date), na.rm = TRUE), max_date = max(as.Date(C_COVID_diagnosis_date), na.rm = TRUE))
+data_on %>% summarise(n=n(),min_date = min(as.Date(C_COVID_diagnosis_date, format = "%Y-%m-%d"), na.rm = TRUE), 
+                      max_date = max(as.Date(C_COVID_diagnosis_date, format = "%Y-%m-%d"), na.rm = TRUE))
 
 
 full_data_sansON$e_diagnosis <- as.Date(full_data_sansON$e_diagnosis)
@@ -2291,7 +2299,8 @@ colnames(partial_data_ON)
 
 data_NL_partial <- data_NL[,colnames(partial_data_ON)]
 
-
+write.csv(full_data_sansON, here("non-ontario data.csv"))
+write.csv(partial_data_ON, here("partial ontario data.csv"))
 
 ##### FOR PMA WE NEED THE FOLLOWING #####
 

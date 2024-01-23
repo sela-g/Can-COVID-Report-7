@@ -127,8 +127,8 @@ summary(as.Date(bcmbnbpe$e_diagnosis))
 
 #### ontario and alberta aggregate data loaded:
 
-table2_ontario <- read.csv("table2_on.csv",header = TRUE)
-table2_alberta <- read.csv("table2_alberta.csv", header = TRUE)
+table_ontario <- read.csv("ONdata/data_on_06_13_2023.csv",header = TRUE)
+table1_alberta <- read.csv("ABdata/CANCOVID-PREG Aggregate Data collection tables ALBERTA updated (2023-02-27).csv", header = TRUE)
 
 ## create table 2 for all data 
 

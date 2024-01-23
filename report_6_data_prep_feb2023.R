@@ -2148,7 +2148,8 @@ cp.int$NICU <- case_when(
   is.na(cp.int$s_bw_gm) == FALSE ~ "No")
 
 ##### TODO: FIX BELOW ####### duration of admission
-cp.int$nicu_dur <- (!is.na(cp.int$t_nicu_discharge)) - (!is.na(cp.int$t_nicu_admission))
+cp.int$nicu_dur <- (!is.na(as.Date(cp.int$t_nicu_discharge, format = "%Y-%m-%d"))) - 
+  (!is.na(as.Date(cp.int$t_nicu_admission, format = "%Y-%m-%d")))
 max(cp.int$nicu_dur)
 
 # time between delivery and diagnosis
@@ -2392,3 +2393,4 @@ ns_clean$BMI_cat <- factor(ns_clean$BMI_cat, levels = c("<18.5", "18.5-25", "25-
 #ns_clean <- ns_clean[-which(ns_clean$e_diagnosis),]
 
 write.csv(ns_clean, here("NS_CLEANED_2024-01-21.csv"))
+
